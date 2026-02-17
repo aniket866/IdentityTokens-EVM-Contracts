@@ -14,7 +14,13 @@
     "dependencies": {
         "@openzeppelin/contracts": "^5.0.0"
     },
+    "lint-staged": {
+        "*.sol": "prettier --write --plugin=prettier-plugin-solidity",
+        "*.{js,ts,json,md}": "prettier --write"
+    },
     "devDependencies": {
+        "husky": "^9.1.7",
+        "lint-staged": "^16.2.7",
         "prettier": "^3.8.1",
         "prettier-plugin-solidity": "^2.2.1"
     }

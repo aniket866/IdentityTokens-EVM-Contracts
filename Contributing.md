@@ -10,11 +10,11 @@ Please follow this complete step-by-step guide from beginner level to final PR m
 
 # 📜 1. Core Contribution Rules (Read First)
 
-- You MUST get the issue assigned before starting.
-- You MUST discuss major changes on Discord before coding.
-- You MUST write or update tests for contract changes.
-- You MUST run formatting and checks before committing.
-- You MUST NOT open PRs without linking an issue.
+-   You MUST get the issue assigned before starting.
+-   You MUST discuss major changes on Discord before coding.
+-   You MUST write or update tests for contract changes.
+-   You MUST run formatting and checks before committing.
+-   You MUST NOT open PRs without linking an issue.
 
 Security > Speed.
 
@@ -24,13 +24,13 @@ Security > Speed.
 
 ## 🔎 Step 1: Find or Create an Issue
 
-* Browse existing issues.
-* If none exists, create one with:
+-   Browse existing issues.
+-   If none exists, create one with:
 
-  * Clear title
-  * Problem description
-  * Expected behavior
-  * Technical reasoning
+    -   Clear title
+    -   Problem description
+    -   Expected behavior
+    -   Technical reasoning
 
 Do NOT start coding yet.
 
@@ -38,23 +38,24 @@ Do NOT start coding yet.
 
 ## 🙋 Step 2: Get Assigned
 
-* Comment: "I would like to work on this issue."
-* Wait for maintainer/knight approval.
-* Start only after assignment.
+-   Comment: "I would like to work on this issue."
+-   Wait for maintainer/knight approval.
+-   Start only after assignment.
 
 Unassigned PRs may be closed.
 
 ---
 
 ## 💬 Step 3: Discuss on Discord:
-- Join here :[discord](https://discord.com/channels/995968619034984528/1461697098767532269)
+
+-   Join here :[discord](https://discord.com/channels/995968619034984528/1461697098767532269)
 
 Before writing code:
 
-* Share your technical plan.
-* Explain storage changes (if any).
-* Mention security considerations.
-* Confirm architecture consistency.
+-   Share your technical plan.
+-   Explain storage changes (if any).
+-   Mention security considerations.
+-   Confirm architecture consistency.
 
 This avoids wasted review cycles.
 
@@ -101,10 +102,10 @@ git checkout -b feature/short-description
 
 Examples:
 
-* feature/add-endorsement-logic
-* fix/token-mapping-bug
-* refactor/storage-optimization
-* docs/update-natspec
+-   feature/add-endorsement-logic
+-   fix/token-mapping-bug
+-   refactor/storage-optimization
+-   docs/update-natspec
 
 ---
 
@@ -118,9 +119,9 @@ npm install
 
 This installs:
 
-* Prettier
-* Prettier Solidity plugin
-* OpenZeppelin dependency
+-   Prettier
+-   Prettier Solidity plugin
+-   OpenZeppelin dependency
 
 ---
 
@@ -180,11 +181,11 @@ Ensure correct RPC and private key configuration before broadcasting.
 
 If your change modifies contracts:
 
-* Add or update Forge tests.
-* Test access control.
-* Test endorsement logic.
-* Test edge cases.
-* Validate gas usage impact.
+-   Add or update Forge tests.
+-   Test access control.
+-   Test endorsement logic.
+-   Test edge cases.
+-   Validate gas usage impact.
 
 Run:
 
@@ -244,15 +245,15 @@ PRs failing formatting checks may be rejected.
 
 Because this is an EVM contract repository:
 
-* Use Solidity ^0.8.24 conventions.
-* Use OpenZeppelin correctly.
-* Add NatSpec documentation.
-* Avoid unbounded loops.
-* Avoid unnecessary storage writes.
-* Use require for validation.
-* Protect against reentrancy where needed.
-* Consider multiple identity tokens per user.
-* Validate endorsement mappings carefully.
+-   Use Solidity ^0.8.24 conventions.
+-   Use OpenZeppelin correctly.
+-   Add NatSpec documentation.
+-   Avoid unbounded loops.
+-   Avoid unnecessary storage writes.
+-   Use require for validation.
+-   Protect against reentrancy where needed.
+-   Consider multiple identity tokens per user.
+-   Validate endorsement mappings carefully.
 
 If possible, run Slither locally:
 
@@ -273,10 +274,10 @@ git commit -m "feat: short clear description"
 
 Good examples:
 
-* feat: add endorsement validation check
-* fix: resolve identity mapping overwrite bug
-* refactor: optimize storage packing
-* docs: update natspec comments
+-   feat: add endorsement validation check
+-   fix: resolve identity mapping overwrite bug
+-   refactor: optimize storage packing
+-   docs: update natspec comments
 
 Avoid vague messages like "update".
 
@@ -305,11 +306,11 @@ git push origin feature/short-description
 
 When opening PR:
 
-* Link issue (Closes #number)
-* Explain what changed
-* Explain why
-* Mention gas impact
-* Mention security considerations
+-   Link issue (Closes #number)
+-   Explain what changed
+-   Explain why
+-   Mention gas impact
+-   Mention security considerations
 
 PR must pass CI before review.
 
@@ -317,12 +318,12 @@ PR must pass CI before review.
 
 # ❌ What Causes Rejection
 
-* No assignment
-* No Discord discussion for major change
-* Missing tests
-* Formatting not applied
-* Failing CI
-* Breaking protocol logic
+-   No assignment
+-   No Discord discussion for major change
+-   Missing tests
+-   Formatting not applied
+-   Failing CI
+-   Breaking protocol logic
 
 ---
 

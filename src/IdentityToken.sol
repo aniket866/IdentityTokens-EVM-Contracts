@@ -11,6 +11,9 @@ contract IdentityToken is ERC721 {
 
     uint256 private _nextTokenId = 1;
 
+    // wallet => tokenId (enforce one identity per wallet)
+    mapping(address => uint256) public ownerToTokenId;
+
     // tokenId => IdentityState
     mapping(uint256 => DataTypes.IdentityState) public identityStates;
 
@@ -32,22 +35,38 @@ contract IdentityToken is ERC721 {
 
     constructor() ERC721("IdentityToken", "IDT") {}
 
-    function _update(address to, uint256 tokenId, address auth)
-        internal
-        override
-        returns (address)
-    {
+    function _update(address to, uint256 tokenId, address auth) internal override returns (address) {
         address from = _ownerOf(tokenId);
+
+        // prevent transfers (only mint or burn allowed)
         if (from != address(0) && to != address(0)) revert NonTransferable();
-        return super._update(to, tokenId, auth);
+
+        address prevOwner = super._update(to, tokenId, auth);
+
+        // maintain ownerToTokenId mapping
+        if (from != address(0)) {
+            delete ownerToTokenId[from];
+        }
+
+        if (to != address(0)) {
+            ownerToTokenId[to] = tokenId;
+        }
+
+        return prevOwner;
     }
 
     /**
      * @dev Mints a new self-issued identity token to the caller.
      */
     function mint() external returns (uint256) {
+        if (balanceOf(msg.sender) != 0) revert Errors.AlreadyHasIdentity();
+
         uint256 tokenId = _nextTokenId++;
+
         _mint(msg.sender, tokenId);
+
+        ownerToTokenId[msg.sender] = tokenId;
+
         return tokenId;
     }
 
@@ -60,6 +79,7 @@ contract IdentityToken is ERC721 {
         bytes calldata value
     ) external onlyTokenOwner(tokenId) notCompromised(tokenId) {
         bytes32 keyHash = keccak256(abi.encodePacked(key));
+
         attributes[tokenId][keyHash] = value;
 
         emit Events.AttributeSet(tokenId, keyHash, value);
@@ -76,6 +96,19 @@ contract IdentityToken is ERC721 {
     ) external onlyTokenOwner(fromTokenId) notCompromised(fromTokenId) {
         if (fromTokenId == toTokenId) revert Errors.SelfEndorsement();
         if (_ownerOf(toTokenId) == address(0)) revert Errors.TargetInvalid();
+
+        DataTypes.Endorsement[] storage list = endorsements[toTokenId];
+
+        // prevent duplicate active endorsements
+        for (uint256 i = 0; i < list.length; i++) {
+            DataTypes.Endorsement storage e = list[i];
+
+            bool active = e.revokedAt == 0 && (e.validUntil == 0 || e.validUntil >= block.timestamp);
+
+            if (active && e.endorserTokenId == fromTokenId && e.connectionType == connectionType) {
+                revert Errors.DuplicateEndorsement();
+            }
+        }
 
         DataTypes.Endorsement memory newEndorsement = DataTypes.Endorsement({
             endorserTokenId: fromTokenId,

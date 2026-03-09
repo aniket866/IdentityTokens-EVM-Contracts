@@ -7,6 +7,8 @@ import { Errors } from "./libraries/Errors.sol";
 import { Events } from "./libraries/Events.sol";
 
 contract IdentityToken is ERC721 {
+    error NonTransferable();
+
     uint256 private _nextTokenId = 1;
 
     // tokenId => IdentityState
@@ -29,6 +31,16 @@ contract IdentityToken is ERC721 {
     }
 
     constructor() ERC721("IdentityToken", "IDT") {}
+
+    function _update(address to, uint256 tokenId, address auth)
+        internal
+        override
+        returns (address)
+    {
+        address from = _ownerOf(tokenId);
+        if (from != address(0) && to != address(0)) revert NonTransferable();
+        return super._update(to, tokenId, auth);
+    }
 
     /**
      * @dev Mints a new self-issued identity token to the caller.

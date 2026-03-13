@@ -2,21 +2,11 @@
 pragma solidity ^0.8.24;
 
 interface IIdentityToken {
-
     function mint() external returns (uint256);
 
-    function setAttribute(
-        uint256 tokenId,
-        string calldata key,
-        bytes calldata value
-    ) external;
+    function setAttribute(uint256 tokenId, string calldata key, bytes calldata value) external;
 
-    function endorse(
-        uint256 fromTokenId,
-        uint256 toTokenId,
-        bytes32 connectionType,
-        uint256 validUntil
-    ) external;
+    function endorse(uint256 fromTokenId, uint256 toTokenId, bytes32 connectionType, uint256 validUntil) external;
 
     function ownerOf(uint256 tokenId) external view returns (address);
 
@@ -37,17 +27,9 @@ interface IIdentityToken {
     )
         external
         view
-        returns (
-            bool isCompromised,
-            address backupWallet,
-            address pendingBackupWallet,
-            uint256 backupUnlockTime
-        );
+        returns (bool isCompromised, address backupWallet, address pendingBackupWallet, uint256 backupUnlockTime);
 
-    function attributes(
-        uint256 tokenId,
-        bytes32 keyHash
-    ) external view returns (bytes memory);
+    function attributes(uint256 tokenId, bytes32 keyHash) external view returns (bytes memory);
 
     function endorsements(
         uint256 tokenId,

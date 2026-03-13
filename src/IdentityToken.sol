@@ -2,11 +2,13 @@
 pragma solidity ^0.8.24;
 
 import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import { DataTypes } from "./libraries/DataTypes.sol";
 import { Errors } from "./libraries/Errors.sol";
 import { Events } from "./libraries/Events.sol";
+import { IIdentityToken } from "./interfaces/IIdentityToken.sol";
 
-contract IdentityToken is ERC721 {
+contract IdentityToken is ERC721, IIdentityToken {
     error NonTransferable();
 
     uint256 private _nextTokenId = 1;
@@ -34,6 +36,10 @@ contract IdentityToken is ERC721 {
     }
 
     constructor() ERC721("IdentityToken", "IDT") {}
+
+    function supportsInterface(bytes4 interfaceId) public view override(ERC721, IERC165) returns (bool) {
+        return super.supportsInterface(interfaceId);
+    }
 
     function _update(address to, uint256 tokenId, address auth) internal override returns (address) {
         address from = _ownerOf(tokenId);

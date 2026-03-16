@@ -68,6 +68,66 @@ contract IdentityTokenTest is Test {
         assertEq(storedValidUntil, validUntil);
         assertEq(revokedAt, 0);
     }
+    function test_RevokeEndorsement() public {
+        vm.prank(alice);
+        uint256 aliceId = identityToken.mint();
+        vm.prank(bob);
+        uint256 bobId = identityToken.mint();
+
+        bytes32 connectionType = keccak256(abi.encodePacked("Colleague"));
+        vm.prank(alice);
+        identityToken.endorse(aliceId, bobId, connectionType, 0);
+
+        vm.prank(alice);
+        identityToken.revokeEndorsement(aliceId, bobId, 0);
+
+        (, , , , uint256 revokedAt) = identityToken.endorsements(bobId, 0);
+        assertGt(revokedAt, 0);
+    }
+
+    function test_RevertIf_RevokeByNonEndorser() public {
+        vm.prank(alice);
+        uint256 aliceId = identityToken.mint();
+        vm.prank(bob);
+        uint256 bobId = identityToken.mint();
+
+        bytes32 connectionType = keccak256(abi.encodePacked("Colleague"));
+        vm.prank(alice);
+        identityToken.endorse(aliceId, bobId, connectionType, 0);
+
+        vm.prank(bob);
+        vm.expectRevert(Errors.NotEndorser.selector);
+        identityToken.revokeEndorsement(bobId, bobId, 0); // bob tries to revoke alice's endorsement
+    }
+
+    function test_RevertIf_AlreadyRevoked() public {
+        vm.prank(alice);
+        uint256 aliceId = identityToken.mint();
+        vm.prank(bob);
+        uint256 bobId = identityToken.mint();
+
+        bytes32 connectionType = keccak256(abi.encodePacked("Colleague"));
+        vm.prank(alice);
+        identityToken.endorse(aliceId, bobId, connectionType, 0);
+
+        vm.prank(alice);
+        identityToken.revokeEndorsement(aliceId, bobId, 0);
+
+        vm.prank(alice);
+        vm.expectRevert(Errors.AlreadyRevoked.selector);
+        identityToken.revokeEndorsement(aliceId, bobId, 0); // double revoke
+    }
+
+    function test_RevertIf_IndexOutOfBounds() public {
+        vm.prank(alice);
+        uint256 aliceId = identityToken.mint();
+        vm.prank(bob);
+        uint256 bobId = identityToken.mint();
+
+        vm.prank(alice);
+        vm.expectRevert(Errors.IndexOutOfBounds.selector);
+        identityToken.revokeEndorsement(aliceId, bobId, 99);
+    }
 
     function test_RevertIf_NotOwnerSetsAttribute() public {
         vm.prank(alice);

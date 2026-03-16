@@ -9,6 +9,8 @@ interface IIdentityToken is IERC721, IERC721Metadata {
 
     function endorse(uint256 fromTokenId, uint256 toTokenId, bytes32 connectionType, uint256 validUntil) external;
 
+    function revokeEndorsement(uint256 fromTokenId, uint256 toTokenId, uint256 index) external;
+
     function ownerToTokenId(address owner) external view returns (uint256);
 
     function identityStates(

@@ -128,4 +128,22 @@ contract IdentityToken is ERC721, IIdentityToken {
 
         emit Events.EndorsementGiven(fromTokenId, toTokenId, connectionType, validUntil);
     }
+    function revokeEndorsement(
+        uint256 fromTokenId,
+        uint256 toTokenId,
+        uint256 index
+    ) external onlyTokenOwner(fromTokenId) {
+        DataTypes.Endorsement[] storage list = endorsements[toTokenId];
+
+        if (index >= list.length) revert Errors.IndexOutOfBounds();
+
+        DataTypes.Endorsement storage e = list[index];
+
+        if (e.endorserTokenId != fromTokenId) revert Errors.NotEndorser();
+        if (e.revokedAt != 0) revert Errors.AlreadyRevoked();
+
+        e.revokedAt = block.timestamp;
+
+        emit Events.EndorsementRevoked(fromTokenId, toTokenId, index);
+    }
 }

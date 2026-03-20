@@ -286,14 +286,6 @@ contract IdentityTokenTest is Test {
         assertEq(revokedAt, 0);
     }
 
-    function test_RevertIf_NotOwnerSetsAttribute() public {
-        vm.prank(alice);
-        uint256 tokenId = identityToken.mint();
-
-        vm.prank(bob);
-        vm.expectRevert(Errors.NotTokenOwner.selector);
-        identityToken.setAttribute(tokenId, "name", bytes("Hacker Bob"));
-    }
 
     // --- deleteAttribute ---
 

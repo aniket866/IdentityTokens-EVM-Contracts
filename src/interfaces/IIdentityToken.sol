@@ -3,6 +3,7 @@ pragma solidity ^0.8.24;
 
 import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import { DataTypes } from "../libraries/DataTypes.sol";
 
 interface IIdentityToken is IERC721, IERC721Metadata {
     // -------------------------------------------------------------------------
@@ -37,7 +38,13 @@ interface IIdentityToken is IERC721, IERC721Metadata {
     )
         external
         view
-        returns (bool isCompromised, address backupWallet, address pendingBackupWallet, uint256 backupUnlockTime);
+        returns (
+            bool isCompromised,
+            address backupWallet,
+            address pendingBackupWallet,
+            uint256 backupUnlockTime,
+            uint256 validUntil
+        );
 
     function attributes(uint256 tokenId, bytes32 keyHash) external view returns (bytes memory);
 
@@ -54,4 +61,16 @@ interface IIdentityToken is IERC721, IERC721Metadata {
             uint256 validUntil,
             uint256 revokedAt
         );
+
+    // Identity helpers
+
+    function hasIdentity(address owner) external view returns (bool);
+
+    function getIdentity(uint256 tokenId) external view returns (DataTypes.Identity memory);
+
+    function getIdentityByOwner(address owner) external view returns (uint256[] memory);
+
+    function isVerified(uint256 tokenId) external view returns (bool);
+
+    function isExpired(uint256 tokenId) external view returns (bool);
 }

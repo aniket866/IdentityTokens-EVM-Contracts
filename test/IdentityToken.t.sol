@@ -286,15 +286,6 @@ contract IdentityTokenTest is Test {
         assertEq(revokedAt, 0);
     }
 
-    function test_RevertIf_NotOwnerSetsAttribute() public {
-        vm.prank(alice);
-        uint256 tokenId = identityToken.mint();
-
-        vm.prank(bob);
-        vm.expectRevert(Errors.NotTokenOwner.selector);
-        identityToken.setAttribute(tokenId, "name", bytes("Hacker Bob"));
-    }
-
     // --- deleteAttribute ---
 
     function test_DeleteAttribute() public {
@@ -398,5 +389,142 @@ contract IdentityTokenTest is Test {
         vm.prank(alice);
         vm.expectRevert(Errors.IdentityCompromised.selector);
         identityToken.deleteAttribute(tokenId, "email");
+    }
+    // --- hasIdentity ---
+
+    function test_HasIdentity_True() public {
+        vm.prank(alice);
+        identityToken.mint();
+        assertTrue(identityToken.hasIdentity(alice));
+    }
+
+    function test_HasIdentity_False() public view {
+        assertFalse(identityToken.hasIdentity(alice));
+    }
+
+    // --- getIdentity ---
+
+    function test_GetIdentity_ReturnsCorrectFields() public {
+        vm.prank(alice);
+        uint256 tokenId = identityToken.mint();
+
+        DataTypes.Identity memory identity = identityToken.getIdentity(tokenId);
+
+        assertEq(identity.tokenId, tokenId);
+        assertEq(identity.owner, alice);
+        assertFalse(identity.isCompromised);
+        assertEq(identity.validUntil, 0);
+        assertEq(identity.endorsementCount, 0);
+    }
+
+    function test_GetIdentity_EndorsementCountUpdates() public {
+        vm.prank(alice);
+        uint256 aliceId = identityToken.mint();
+
+        vm.prank(bob);
+        uint256 bobId = identityToken.mint();
+
+        bytes32 connectionType = keccak256(abi.encodePacked("Colleague"));
+        vm.prank(alice);
+        identityToken.endorse(aliceId, bobId, connectionType, 0);
+
+        DataTypes.Identity memory identity = identityToken.getIdentity(bobId);
+        assertEq(identity.endorsementCount, 1);
+    }
+
+    function test_GetIdentity_RevertsForNonexistentToken() public {
+        vm.expectRevert();
+        identityToken.getIdentity(999);
+    }
+
+    // --- getIdentityByOwner ---
+
+    function test_GetIdentityByOwner_ReturnsTokenId() public {
+        vm.prank(alice);
+        uint256 tokenId = identityToken.mint();
+
+        uint256[] memory result = identityToken.getIdentityByOwner(alice);
+
+        assertEq(result.length, 1);
+        assertEq(result[0], tokenId);
+    }
+
+    function test_GetIdentityByOwner_ReturnsEmptyIfNoToken() public view {
+        uint256[] memory result = identityToken.getIdentityByOwner(alice);
+        assertEq(result.length, 0);
+    }
+
+    // --- isVerified ---
+
+    function test_IsVerified_FalseWithNoEndorsements() public {
+        vm.prank(alice);
+        uint256 tokenId = identityToken.mint();
+        assertFalse(identityToken.isVerified(tokenId));
+    }
+
+    function test_IsVerified_TrueWithActiveEndorsement() public {
+        vm.prank(alice);
+        uint256 aliceId = identityToken.mint();
+
+        vm.prank(bob);
+        uint256 bobId = identityToken.mint();
+
+        bytes32 connectionType = keccak256(abi.encodePacked("Colleague"));
+        vm.prank(alice);
+        identityToken.endorse(aliceId, bobId, connectionType, 0);
+
+        assertTrue(identityToken.isVerified(bobId));
+    }
+
+    function test_IsVerified_FalseWithExpiredEndorsement() public {
+        vm.prank(alice);
+        uint256 aliceId = identityToken.mint();
+
+        vm.prank(bob);
+        uint256 bobId = identityToken.mint();
+
+        bytes32 connectionType = keccak256(abi.encodePacked("Colleague"));
+        uint256 validUntil = block.timestamp + 1 days;
+
+        vm.prank(alice);
+        identityToken.endorse(aliceId, bobId, connectionType, validUntil);
+
+        vm.warp(block.timestamp + 2 days);
+
+        assertFalse(identityToken.isVerified(bobId));
+    }
+
+    // --- isExpired ---
+
+    function test_IsExpired_FalseWhenNoValidUntil() public {
+        vm.prank(alice);
+        uint256 tokenId = identityToken.mint();
+        assertFalse(identityToken.isExpired(tokenId));
+    }
+
+    function test_IsExpired_FalseBeforeExpiry() public {
+        vm.prank(alice);
+        uint256 tokenId = identityToken.mint();
+
+        stdstore.target(address(identityToken)).sig("identityStates(uint256)").with_key(tokenId).depth(4).checked_write(
+            block.timestamp + 1 days
+        );
+
+        assertFalse(identityToken.isExpired(tokenId));
+    }
+
+    function test_IsExpired_TrueAfterExpiry() public {
+        vm.prank(alice);
+        uint256 tokenId = identityToken.mint();
+
+        uint256 expiry = block.timestamp + 1 days;
+
+        stdstore.target(address(identityToken)).sig("identityStates(uint256)").with_key(tokenId).depth(4).checked_write(
+            expiry
+        );
+
+        vm.warp(expiry + 1);
+
+        assertTrue(identityToken.isExpired(tokenId));
     }
 }

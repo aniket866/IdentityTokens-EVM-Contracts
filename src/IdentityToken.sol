@@ -195,4 +195,56 @@ contract IdentityToken is ERC721, IIdentityToken {
 
         emit Events.AttributeSet(tokenId, keyHash, key, value);
     }
+
+    // Identity helpers
+
+    /// @notice Returns true if the address owns any identity token.
+    function hasIdentity(address owner) external view returns (bool) {
+        return balanceOf(owner) > 0;
+    }
+
+    /// @notice Returns full metadata for a given token.
+    function getIdentity(uint256 tokenId) external view returns (DataTypes.Identity memory) {
+        address owner = _requireOwned(tokenId);
+        DataTypes.IdentityState storage state = identityStates[tokenId];
+        return
+            DataTypes.Identity({
+                tokenId: tokenId,
+                owner: owner,
+                isCompromised: state.isCompromised,
+                backupWallet: state.backupWallet,
+                pendingBackupWallet: state.pendingBackupWallet,
+                backupUnlockTime: state.backupUnlockTime,
+                validUntil: state.validUntil,
+                endorsementCount: endorsements[tokenId].length
+            });
+    }
+
+    /// @notice Returns all token IDs owned by an address (0 or 1 given soulbound constraint).
+    function getIdentityByOwner(address owner) external view returns (uint256[] memory) {
+        uint256 tokenId = ownerToTokenId[owner];
+        if (tokenId == 0) {
+            return new uint256[](0);
+        }
+        uint256[] memory result = new uint256[](1);
+        result[0] = tokenId;
+        return result;
+    }
+
+    /// @notice Returns true if the token has at least one active (non-revoked, non-expired) endorsement.
+    function isVerified(uint256 tokenId) external view returns (bool) {
+        DataTypes.Endorsement[] storage list = endorsements[tokenId];
+        for (uint256 i = 0; i < list.length; i++) {
+            DataTypes.Endorsement storage e = list[i];
+            bool active = e.revokedAt == 0 && (e.validUntil == 0 || e.validUntil >= block.timestamp);
+            if (active) return true;
+        }
+        return false;
+    }
+
+    /// @notice Returns true if the token's validUntil is set and has passed.
+    function isExpired(uint256 tokenId) external view returns (bool) {
+        uint256 validUntil = identityStates[tokenId].validUntil;
+        return validUntil != 0 && block.timestamp > validUntil;
+    }
 }

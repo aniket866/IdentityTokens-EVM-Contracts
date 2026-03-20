@@ -15,5 +15,17 @@ library DataTypes {
         address backupWallet;
         address pendingBackupWallet;
         uint256 backupUnlockTime;
+        uint256 validUntil;
+    }
+
+    struct Identity {
+        uint256 tokenId;
+        address owner;
+        bool isCompromised;
+        address backupWallet;
+        address pendingBackupWallet;
+        uint256 backupUnlockTime;
+        uint256 validUntil;
+        uint256 endorsementCount;
     }
 }

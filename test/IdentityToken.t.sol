@@ -286,7 +286,6 @@ contract IdentityTokenTest is Test {
         assertEq(revokedAt, 0);
     }
 
-
     // --- deleteAttribute ---
 
     function test_DeleteAttribute() public {

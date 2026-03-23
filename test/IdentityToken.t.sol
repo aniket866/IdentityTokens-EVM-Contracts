@@ -8,6 +8,8 @@ import { Errors } from "../src/libraries/Errors.sol";
 import { Schema } from "../src/libraries/Schema.sol";
 
 contract IdentityTokenTest is Test {
+    event AttributeSet(uint256 indexed tokenId, bytes32 indexed keyHash, string key, bytes value);
+
     IdentityToken public identityToken;
     address public alice = address(0x1);
     address public bob = address(0x2);
@@ -67,6 +69,57 @@ contract IdentityTokenTest is Test {
             string(identityToken.getAttribute(tokenId, "github")),
             string(identityToken.attributes(tokenId, Schema.GITHUB))
         );
+    }
+
+    function test_SetAttribute_PhoneEmail_HashCompatibility() public {
+        vm.prank(alice);
+        uint256 tokenId = identityToken.mint();
+
+        // Phone set/get via raw key and hashed Schema key consistency
+        vm.prank(alice);
+        vm.expectEmit(true, true, true, true);
+        emit AttributeSet(tokenId, Schema.PHONE, "phone", bytes("1234567890"));
+        identityToken.setAttribute(tokenId, "phone", bytes("1234567890"));
+
+        assertEq(string(identityToken.getAttribute(tokenId, "phone")), "1234567890");
+        assertEq(string(identityToken.attributes(tokenId, Schema.PHONE)), "1234567890");
+
+        // Update phone value
+        vm.prank(alice);
+        identityToken.setAttribute(tokenId, "phone", bytes("0987654321"));
+
+        assertEq(string(identityToken.getAttribute(tokenId, "phone")), "0987654321");
+        assertEq(string(identityToken.attributes(tokenId, Schema.PHONE)), "0987654321");
+
+        // Clear phone value
+        vm.prank(alice);
+        identityToken.setAttribute(tokenId, "phone", bytes(""));
+
+        assertEq(identityToken.getAttribute(tokenId, "phone").length, 0);
+        assertEq(identityToken.attributes(tokenId, Schema.PHONE).length, 0);
+
+        // Email set/get via raw key and hashed Schema key consistency
+        vm.prank(alice);
+        vm.expectEmit(true, true, true, true);
+        emit AttributeSet(tokenId, Schema.EMAIL, "email", bytes("alice@example.com"));
+        identityToken.setAttribute(tokenId, "email", bytes("alice@example.com"));
+
+        assertEq(string(identityToken.getAttribute(tokenId, "email")), "alice@example.com");
+        assertEq(string(identityToken.attributes(tokenId, Schema.EMAIL)), "alice@example.com");
+
+        // Update email value
+        vm.prank(alice);
+        identityToken.setAttribute(tokenId, "email", bytes("alice+alias@example.com"));
+
+        assertEq(string(identityToken.getAttribute(tokenId, "email")), "alice+alias@example.com");
+        assertEq(string(identityToken.attributes(tokenId, Schema.EMAIL)), "alice+alias@example.com");
+
+        // Clear email value
+        vm.prank(alice);
+        identityToken.setAttribute(tokenId, "email", bytes(""));
+
+        assertEq(identityToken.getAttribute(tokenId, "email").length, 0);
+        assertEq(identityToken.attributes(tokenId, Schema.EMAIL).length, 0);
     }
 
     function test_SetAttribute_SocialLinks() public {
@@ -250,6 +303,8 @@ contract IdentityTokenTest is Test {
         assertEq(Schema.GITHUB, keccak256(abi.encodePacked("github")));
         assertEq(Schema.LINKEDIN, keccak256(abi.encodePacked("linkedin")));
         assertEq(Schema.TWITTER, keccak256(abi.encodePacked("twitter")));
+        assertEq(Schema.PHONE, keccak256(abi.encodePacked("phone")));
+        assertEq(Schema.EMAIL, keccak256(abi.encodePacked("email")));
     }
 
     // -------------------------------------------------------------------------

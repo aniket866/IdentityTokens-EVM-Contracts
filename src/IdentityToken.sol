@@ -130,6 +130,12 @@ contract IdentityToken is ERC721, IIdentityToken {
         _setAttribute(tokenId, "github", bytes(github));
     }
 
+    /**
+     * @notice Deletes an attribute for a given identity token.
+     * @dev Hashes the provided key using keccak256 and removes the stored value.
+     *      Emits {AttributeDeleted}. If the key does not exist, this is a no-op.
+     */
+
     function deleteAttribute(
         uint256 tokenId,
         string calldata key

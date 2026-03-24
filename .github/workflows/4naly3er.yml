@@ -1,0 +1,27 @@
+name: 4naly3er Report
+
+on:
+    push:
+        branches: [main, master]
+    pull_request:
+        branches: [main, master]
+
+jobs:
+    4naly3er:
+        name: 4naly3er Gas Optimization Report
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  submodules: recursive
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "18"
+
+            - name: Install 4naly3er
+              run: npm install -g @0xsomnus/4naly3er
+
+            - name: Run 4naly3er on src/
+              run: 4naly3er src/

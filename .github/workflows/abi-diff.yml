@@ -1,0 +1,47 @@
+name: ABI Diff Check
+
+on:
+    push:
+        branches: [main, master]
+    pull_request:
+        branches: [main, master]
+
+env:
+    FOUNDRY_PROFILE: ci
+
+jobs:
+    abi-diff:
+        name: ABI Diff Check
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  submodules: recursive
+
+            - name: Install Foundry
+              uses: foundry-rs/foundry-toolchain@v1
+
+            - name: Build contracts
+              run: forge build
+
+            - name: Generate ABIs and diff against baseline
+              run: |
+                  mkdir -p .abi-current
+                  CHANGED=0
+                  # Edit this list to match your contract names
+                  CONTRACTS=("YourContract" "AnotherContract")
+                  for contract in "${CONTRACTS[@]}"; do
+                    forge inspect "$contract" abi > ".abi-current/${contract}.json" 2>/dev/null || true
+                    baseline=".abi-baselines/${contract}.json"
+                    if [ -f "$baseline" ]; then
+                      if ! diff -u "$baseline" ".abi-current/${contract}.json"; then
+                        echo "❌ ABI changed for $contract — this may be a breaking change!"
+                        CHANGED=1
+                      fi
+                    else
+                      echo "⚠️  No ABI baseline for $contract — add it to .abi-baselines/"
+                    fi
+                  done
+                  if [ "$CHANGED" -eq 1 ]; then
+                    exit 1
+                  fi

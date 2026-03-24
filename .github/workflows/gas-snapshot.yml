@@ -1,0 +1,33 @@
+name: Gas Snapshot Diff
+
+on:
+    push:
+        branches: [main, master]
+    pull_request:
+        branches: [main, master]
+
+env:
+    FOUNDRY_PROFILE: ci
+
+jobs:
+    gas-snapshot:
+        name: Gas Snapshot Diff
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  submodules: recursive
+
+            - name: Install Foundry
+              uses: foundry-rs/foundry-toolchain@v1
+
+            - name: Run gas snapshot
+              run: forge snapshot
+
+            - name: Compare gas snapshot diff
+              run: |
+                  forge snapshot --diff .gas-snapshot
+                  if [ $? -ne 0 ]; then
+                    echo "❌ Gas usage increased. Review the diff above."
+                    exit 1
+                  fi

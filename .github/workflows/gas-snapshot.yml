@@ -21,13 +21,9 @@ jobs:
             - name: Install Foundry
               uses: foundry-rs/foundry-toolchain@v1
 
-            - name: Run gas snapshot
-              run: forge snapshot
-
             - name: Compare gas snapshot diff
               run: |
-                  forge snapshot --diff .gas-snapshot
-                  if [ $? -ne 0 ]; then
+                  if ! forge snapshot --diff .gas-snapshot; then
                     echo "❌ Gas usage increased. Review the diff above."
                     exit 1
                   fi

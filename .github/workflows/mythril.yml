@@ -31,6 +31,6 @@ jobs:
                     docker run --rm \
                       -v "$(pwd):/project" \
                       mythril/myth analyze "/project/$contract" \
-                      --solc-json /project/foundry.toml \
-                      --execution-timeout 60 || true
+                      --solv 0.8.24 \
+                      --execution-timeout 60
                   done

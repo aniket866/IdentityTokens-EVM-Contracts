@@ -27,7 +27,7 @@ jobs:
                   cd 4naly3er
                   rm -f src/issues/NC/uselessOverride.ts || true
                   corepack enable
-                  yarn install --frozen-lockfile
+                  yarn install
 
             - name: Run 4naly3er on src/
               run: |

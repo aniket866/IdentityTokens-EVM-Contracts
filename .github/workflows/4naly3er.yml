@@ -21,7 +21,12 @@ jobs:
                   node-version: "18"
 
             - name: Install 4naly3er
-              run: npm install -g 4naly3er
+              run: |
+                  git clone https://github.com/Picodes/4naly3er
+                  cd 4naly3er
+                  yarn
 
             - name: Run 4naly3er on src/
-              run: 4naly3er src/
+              run: |
+                  cd 4naly3er
+                  yarn analyze ../src ../4naly3er-report.md

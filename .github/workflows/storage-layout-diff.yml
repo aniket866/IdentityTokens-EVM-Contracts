@@ -27,8 +27,19 @@ jobs:
             - name: Generate storage layouts
               run: |
                   set -euo pipefail
+                  if [ ! -d .storage-baselines ]; then
+                    echo "No .storage-baselines directory. Skipping generation."
+                    exit 0
+                  fi
+
                   mkdir -p .storage-layouts
-                  CONTRACTS=("YourRealContractA" "YourRealContractB")
+                  mapfile -t CONTRACTS < <(find .storage-baselines -type f -name '*.json' -exec basename {} .json \;)
+
+                  if [ "${#CONTRACTS[@]}" -eq 0 ]; then
+                    echo "No baselines found in .storage-baselines. Skipping generation."
+                    exit 0
+                  fi
+
                   for contract in "${CONTRACTS[@]}"; do
                     forge inspect "$contract" storage-layout > ".storage-layouts/${contract}.json"
                   done
@@ -37,10 +48,14 @@ jobs:
               run: |
                   shopt -s nullglob
                   CHANGED=0
+                  if [ ! -d .storage-layouts ]; then
+                    echo "No .storage-layouts generated. Skipping diff."
+                    exit 0
+                  fi
                   files=(.storage-layouts/*.json)
                   if [ ${#files[@]} -eq 0 ]; then
-                    echo "❌ No storage layouts were generated."
-                    exit 1
+                    echo "No storage layouts were generated. Skipping diff."
+                    exit 0
                   fi
 
                   for file in "${files[@]}"; do

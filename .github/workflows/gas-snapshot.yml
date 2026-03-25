@@ -31,4 +31,3 @@ jobs:
                     echo "❌ Gas usage increased. Review the diff above."
                     exit 1
                   fi
-                  fi

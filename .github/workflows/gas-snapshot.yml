@@ -24,11 +24,11 @@ jobs:
             - name: Compare gas snapshot diff
               run: |
                   if [ ! -f .gas-snapshot ]; then
-                    echo "No .gas-snapshot found. Generating one now instead of diffing."
-                    forge snapshot
-                    exit 0
+                    echo "::error::.gas-snapshot is missing. Commit a baseline snapshot to enable gas regression checks."
+                    exit 1
                   fi
                   if ! forge snapshot --diff .gas-snapshot; then
                     echo "❌ Gas usage increased. Review the diff above."
                     exit 1
+                  fi
                   fi

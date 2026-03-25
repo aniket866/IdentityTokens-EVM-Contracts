@@ -358,9 +358,7 @@ contract IdentityTokenTest is Test {
 
         vm.prank(alice);
         identityToken.deleteAttribute(tokenId, "email");
-
-        bytes32 keyHash = keccak256(abi.encodePacked("email"));
-        bytes memory value = identityToken.attributes(tokenId, keyHash);
+        bytes memory value = identityToken.attributes(tokenId, Schema.EMAIL);
         assertEq(value.length, 0);
     }
 

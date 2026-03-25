@@ -7,7 +7,7 @@ on:
         branches: [main, master]
 
 jobs:
-    4naly3er:
+    analyzer_4naly3er:
         name: 4naly3er Gas Optimization Report
         runs-on: ubuntu-latest
         steps:

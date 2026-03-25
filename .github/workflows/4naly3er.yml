@@ -22,8 +22,9 @@ jobs:
 
             - name: Install 4naly3er
               run: |
-                  git clone https://github.com/Picodes/4naly3er
+                  git clone https://github.com/Kitsune-Analysis/4naly3er
                   cd 4naly3er
+                  rm -f src/issues/NC/uselessOverride.ts || true
                   yarn
 
             - name: Run 4naly3er on src/

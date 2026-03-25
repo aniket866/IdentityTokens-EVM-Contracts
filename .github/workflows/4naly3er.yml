@@ -21,7 +21,7 @@ jobs:
                   node-version: "18"
 
             - name: Install 4naly3er
-              run: npm install -g @0xsomnus/4naly3er
+              run: npm install -g 4naly3er
 
             - name: Run 4naly3er on src/
               run: 4naly3er src/

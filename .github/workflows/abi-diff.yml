@@ -28,10 +28,21 @@ jobs:
               run: |
                   mkdir -p .abi-current
                   CHANGED=0
-                  # Edit this list to match your contract names
-                  CONTRACTS=("YourContract" "AnotherContract")
+
+                  # Derive contract names from existing baselines to avoid placeholder drift.
+                  mapfile -t CONTRACTS < <(find .abi-baselines -type f -name '*.json' -exec basename {} .json \;)
+                  if [ "${#CONTRACTS[@]}" -eq 0 ]; then
+                    echo "::error::No ABI baselines found in .abi-baselines/. Cannot run ABI diff."
+                    exit 1
+                  fi
+
                   for contract in "${CONTRACTS[@]}"; do
-                    forge inspect "$contract" abi > ".abi-current/${contract}.json" 2>/dev/null || true
+                    if ! forge inspect "$contract" abi > ".abi-current/${contract}.json" 2>/dev/null; then
+                      echo "::error::Failed to generate ABI for $contract"
+                      CHANGED=1
+                      continue
+                    fi
+
                     baseline=".abi-baselines/${contract}.json"
                     if [ -f "$baseline" ]; then
                       if ! diff -u "$baseline" ".abi-current/${contract}.json"; then
@@ -39,9 +50,11 @@ jobs:
                         CHANGED=1
                       fi
                     else
-                      echo "⚠️  No ABI baseline for $contract — add it to .abi-baselines/"
+                      echo "::error::No ABI baseline for $contract. Add .abi-baselines/${contract}.json"
+                      CHANGED=1
                     fi
                   done
+
                   if [ "$CHANGED" -eq 1 ]; then
                     exit 1
                   fi

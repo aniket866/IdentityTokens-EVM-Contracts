@@ -22,7 +22,9 @@ jobs:
               uses: foundry-rs/foundry-toolchain@v1
 
             - name: Install lcov
-              run: sudo apt-get install -y lcov
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y lcov
 
             - name: Generate coverage report
               run: forge coverage --report lcov

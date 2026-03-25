@@ -24,8 +24,8 @@ jobs:
             - name: Build and check contract sizes
               run: |
                   forge build --sizes 2>&1 | tee sizes.txt
-                  # Fail if any contract is >= 23KB (warn zone before 24KB EIP-170 limit)
-                  if grep -E "[2-9][3-9]\.[0-9]+ KB|2[4-9]\.[0-9]+ KB" sizes.txt; then
+                  # Fail if any contract is >= 23616 bytes (warn zone before 24KB EIP-170 limit)
+                  if grep -E '^\s*\|.*\s([2-9][0-9]{3}|[1-9][0-9]{4})\s' sizes.txt; then
                     echo "❌ One or more contracts are dangerously close to or over the 24KB limit."
                     exit 1
                   fi

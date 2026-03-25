@@ -26,17 +26,24 @@ jobs:
 
             - name: Generate storage layouts
               run: |
+                  set -euo pipefail
                   mkdir -p .storage-layouts
-                  # Edit this list to match your contract names
-                  CONTRACTS=("YourContract" "AnotherContract")
+                  CONTRACTS=("YourRealContractA" "YourRealContractB")
                   for contract in "${CONTRACTS[@]}"; do
-                    forge inspect "$contract" storage-layout > ".storage-layouts/${contract}.json" 2>/dev/null || true
+                    forge inspect "$contract" storage-layout > ".storage-layouts/${contract}.json"
                   done
 
             - name: Diff against baseline
               run: |
+                  shopt -s nullglob
                   CHANGED=0
-                  for file in .storage-layouts/*.json; do
+                  files=(.storage-layouts/*.json)
+                  if [ ${#files[@]} -eq 0 ]; then
+                    echo "❌ No storage layouts were generated."
+                    exit 1
+                  fi
+
+                  for file in "${files[@]}"; do
                     name=$(basename "$file")
                     baseline=".storage-baselines/$name"
                     if [ -f "$baseline" ]; then
@@ -45,9 +52,11 @@ jobs:
                         CHANGED=1
                       fi
                     else
-                      echo "⚠️  No baseline found for $name — add it to .storage-baselines/"
+                      echo "❌ No baseline found for $name — add it to .storage-baselines/"
+                      CHANGED=1
                     fi
                   done
+
                   if [ "$CHANGED" -eq 1 ]; then
                     exit 1
                   fi

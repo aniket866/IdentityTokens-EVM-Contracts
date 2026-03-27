@@ -26,11 +26,14 @@ jobs:
 
             - name: Run Mythril on all contracts
               run: |
-                  find src -name "*.sol" | while read contract; do
-                    echo "🔍 Scanning $contract ..."
-                    docker run --rm \
-                      -v "$(pwd):/project" \
-                      mythril/myth analyze "/project/$contract" \
-                      --solv 0.8.24 \
-                      --execution-timeout 60
+                  sudo apt-get update && sudo apt-get install -y jq
+                  find out -name "*.json" | while read artifact; do
+                    CONTRACT=$(jq -r '.contractName // empty' "$artifact")
+                    BYTECODE=$(jq -r '.deployedBytecode.object // empty' "$artifact")
+                    if [ -n "$CONTRACT" ] && [ -n "$BYTECODE" ] && [ "$BYTECODE" != "0x" ]; then
+                      echo "🔍 Scanning $CONTRACT from $artifact ..."
+                      docker run --rm \
+                        mythril/myth analyze "$BYTECODE" \
+                        --execution-timeout 60
+                    fi
                   done

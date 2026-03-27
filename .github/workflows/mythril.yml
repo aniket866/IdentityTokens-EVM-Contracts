@@ -1,14 +1,11 @@
 name: Mythril Security Scan
-
 on:
     push:
         branches: [main, master]
     pull_request:
         branches: [main, master]
-
 env:
     FOUNDRY_PROFILE: ci
-
 jobs:
     mythril:
         name: Mythril Security Scan
@@ -17,20 +14,15 @@ jobs:
             - uses: actions/checkout@v4
               with:
                   submodules: recursive
-
             - name: Install Foundry
               uses: foundry-rs/foundry-toolchain@v1
-
             - name: Build contracts
               run: forge build
-
             - name: Run Mythril on all contracts
               run: |
                   sudo apt-get update && sudo apt-get install -y jq
                   find out -name "*.json" | while read artifact; do
                     CONTRACT=$(jq -r '.contractName // empty' "$artifact")
-                    BYTECODE=$(jq -r '.deployedBytecode.object // empty' "$artifact")
-                    if [ -n "$CONTRACT" ] && [ -n "$BYTECODE" ] && [ "$BYTECODE" != "0x" ]; then
                     BYTECODE=$(jq -r '.deployedBytecode.object // empty' "$artifact")
                     if [ -n "$CONTRACT" ] && [ -n "$BYTECODE" ] && [ "$BYTECODE" != "0x" ]; then
                       echo "🔍 Scanning $CONTRACT from $artifact ..."

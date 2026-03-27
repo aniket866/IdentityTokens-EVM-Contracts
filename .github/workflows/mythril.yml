@@ -33,7 +33,9 @@ jobs:
                     if [ -n "$CONTRACT" ] && [ -n "$BYTECODE" ] && [ "$BYTECODE" != "0x" ]; then
                       echo "🔍 Scanning $CONTRACT from $artifact ..."
                       docker run --rm \
-                        mythril/myth analyze "$BYTECODE" \
+                        mythril/myth analyze \
+                        -c "$BYTECODE" \
+                        --bin-runtime \
                         --execution-timeout 60
                     fi
                   done

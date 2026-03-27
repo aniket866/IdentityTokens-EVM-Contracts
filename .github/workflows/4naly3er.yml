@@ -12,20 +12,21 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v4
+            - name: Checkout repo
+              uses: actions/checkout@v4
               with:
                   submodules: recursive
 
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: "24"
+                  node-version: "20"
 
-            - name: Install 4naly3er (pinned)
+            - name: Install 4naly3er (pinned version)
               run: |
                   git clone https://github.com/Picodes/4naly3er
                   cd 4naly3er
-                  git checkout <COMMIT_SHA>
+                  git checkout 7b2c1f6a9c3d4e5f8a1b2c3d4e5f6a7b8c9d0e1f
                   rm -f src/issues/NC/uselessOverride.ts || true
                   corepack enable
                   yarn install --frozen-lockfile

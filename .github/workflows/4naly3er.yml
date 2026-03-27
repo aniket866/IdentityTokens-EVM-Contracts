@@ -21,13 +21,14 @@ jobs:
               with:
                   node-version: "24"
 
-            - name: Install 4naly3er
+            - name: Install 4naly3er (pinned)
               run: |
                   git clone https://github.com/Picodes/4naly3er
                   cd 4naly3er
+                  git checkout <COMMIT_SHA>
                   rm -f src/issues/NC/uselessOverride.ts || true
                   corepack enable
-                  yarn install
+                  yarn install --frozen-lockfile
 
             - name: Run 4naly3er on src/
               run: |

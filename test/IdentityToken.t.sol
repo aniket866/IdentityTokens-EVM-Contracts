@@ -392,6 +392,158 @@ contract IdentityTokenTest is Test {
         vm.expectRevert(Errors.IdentityCompromised.selector);
         identityToken.deleteAttribute(tokenId, "email");
     }
+    // -------------------------------------------------------------------------
+    // Endorsement Revocation
+    // -------------------------------------------------------------------------
+
+    function test_RevokeEndorsement_SetsRevokedAt() public {
+        vm.prank(alice);
+        uint256 aliceId = identityToken.mint();
+
+        vm.prank(bob);
+        uint256 bobId = identityToken.mint();
+
+        bytes32 connectionType = keccak256(abi.encodePacked("Colleague"));
+
+        vm.prank(alice);
+        identityToken.endorse(aliceId, bobId, connectionType, 0);
+
+        vm.prank(alice);
+        identityToken.revokeEndorsement(bobId, 0);
+
+        (, , , , uint256 revokedAt) = identityToken.endorsements(bobId, 0);
+        assertGt(revokedAt, 0);
+    }
+
+    function test_RevokeEndorsement_EmitsEvent() public {
+        vm.prank(alice);
+        uint256 aliceId = identityToken.mint();
+
+        vm.prank(bob);
+        uint256 bobId = identityToken.mint();
+
+        bytes32 connectionType = keccak256(abi.encodePacked("Colleague"));
+
+        vm.prank(alice);
+        identityToken.endorse(aliceId, bobId, connectionType, 0);
+
+        vm.prank(alice);
+        vm.expectEmit(true, true, false, true);
+        emit Events.EndorsementRevoked(aliceId, bobId, 0);
+        identityToken.revokeEndorsement(bobId, 0);
+    }
+
+    function test_RevokeEndorsement_MakesEndorsementInactive() public {
+        vm.prank(alice);
+        uint256 aliceId = identityToken.mint();
+
+        vm.prank(bob);
+        uint256 bobId = identityToken.mint();
+
+        bytes32 connectionType = keccak256(abi.encodePacked("Colleague"));
+
+        vm.prank(alice);
+        identityToken.endorse(aliceId, bobId, connectionType, 0);
+
+        assertTrue(identityToken.isVerified(bobId));
+
+        vm.prank(alice);
+        identityToken.revokeEndorsement(bobId, 0);
+
+        assertFalse(identityToken.isVerified(bobId));
+    }
+
+    function test_RevokeEndorsement_AllowsReEndorseAfterRevocation() public {
+        vm.prank(alice);
+        uint256 aliceId = identityToken.mint();
+
+        vm.prank(bob);
+        uint256 bobId = identityToken.mint();
+
+        bytes32 connectionType = keccak256(abi.encodePacked("Colleague"));
+
+        vm.prank(alice);
+        identityToken.endorse(aliceId, bobId, connectionType, 0);
+
+        vm.prank(alice);
+        identityToken.revokeEndorsement(bobId, 0);
+
+        // Re-endorsing should succeed because the previous one is revoked
+        vm.prank(alice);
+        identityToken.endorse(aliceId, bobId, connectionType, 0);
+
+        (, , , , uint256 revokedAt) = identityToken.endorsements(bobId, 1);
+        assertEq(revokedAt, 0);
+    }
+
+    function test_RevertIf_RevokeEndorsement_NotEndorser() public {
+        vm.prank(alice);
+        uint256 aliceId = identityToken.mint();
+
+        vm.prank(bob);
+        uint256 bobId = identityToken.mint();
+
+        bytes32 connectionType = keccak256(abi.encodePacked("Colleague"));
+
+        vm.prank(alice);
+        identityToken.endorse(aliceId, bobId, connectionType, 0);
+
+        // Bob tries to revoke Alice's endorsement
+        vm.prank(bob);
+        vm.expectRevert(Errors.NotEndorser.selector);
+        identityToken.revokeEndorsement(bobId, 0);
+    }
+
+    function test_RevertIf_RevokeEndorsement_AlreadyRevoked() public {
+        vm.prank(alice);
+        uint256 aliceId = identityToken.mint();
+
+        vm.prank(bob);
+        uint256 bobId = identityToken.mint();
+
+        bytes32 connectionType = keccak256(abi.encodePacked("Colleague"));
+
+        vm.prank(alice);
+        identityToken.endorse(aliceId, bobId, connectionType, 0);
+
+        vm.prank(alice);
+        identityToken.revokeEndorsement(bobId, 0);
+
+        vm.prank(alice);
+        vm.expectRevert(Errors.AlreadyRevoked.selector);
+        identityToken.revokeEndorsement(bobId, 0);
+    }
+
+    function test_RevertIf_RevokeEndorsement_IndexOutOfBounds() public {
+        vm.prank(alice);
+        identityToken.mint();
+
+        vm.prank(bob);
+        uint256 bobId = identityToken.mint();
+
+        vm.prank(alice);
+        vm.expectRevert(Errors.IndexOutOfBounds.selector);
+        identityToken.revokeEndorsement(bobId, 0);
+    }
+
+    function test_RevertIf_RevokeEndorsement_CallerHasNoToken() public {
+        vm.prank(alice);
+        uint256 aliceId = identityToken.mint();
+
+        vm.prank(bob);
+        uint256 bobId = identityToken.mint();
+
+        bytes32 connectionType = keccak256(abi.encodePacked("Colleague"));
+
+        vm.prank(alice);
+        identityToken.endorse(aliceId, bobId, connectionType, 0);
+
+        address stranger = address(0x3);
+        vm.prank(stranger);
+        vm.expectRevert(Errors.NotEndorser.selector);
+        identityToken.revokeEndorsement(bobId, 0);
+    }
+
     // --- hasIdentity ---
 
     function test_HasIdentity_True() public {

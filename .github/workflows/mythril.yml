@@ -31,6 +31,8 @@ jobs:
                     CONTRACT=$(jq -r '.contractName // empty' "$artifact")
                     BYTECODE=$(jq -r '.deployedBytecode.object // empty' "$artifact")
                     if [ -n "$CONTRACT" ] && [ -n "$BYTECODE" ] && [ "$BYTECODE" != "0x" ]; then
+                    BYTECODE=$(jq -r '.deployedBytecode.object // empty' "$artifact")
+                    if [ -n "$CONTRACT" ] && [ -n "$BYTECODE" ] && [ "$BYTECODE" != "0x" ]; then
                       echo "🔍 Scanning $CONTRACT from $artifact ..."
                       docker run --rm \
                         mythril/myth analyze \
